@@ -36,7 +36,7 @@ Place the entire project root (`NESHOSP`) directly in your Hostinger application
 1. Log in to your **Hostinger hPanel**.
 2. Navigate to **Advanced** -> **Node.js**.
 3. Configure the Node.js application:
-   - **Node.js Version**: Select **20.x** or **22.x** (latest LTS).
+   - **Node.js Version**: Select **18.x**, **20.x** or **22.x** (Now fully compatible with Node 18+).
    - **Application Folder**: `public_html` (or select the folder containing your code).
    - **Application Domain**: Select your website domain (e.g. `yourdomain.com`).
    - **Application Startup File**: `server/server.js` (Point this directly to the server file).
