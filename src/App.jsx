@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import FloatingButtons from './components/FloatingButtons';
-import Home from './pages/Home';
-import About from './pages/About';
-import Services from './pages/Services';
-import ServiceDetails from './pages/ServiceDetails';
-import Doctors from './pages/Doctors';
-import Contact from './pages/Contact';
-import Admin from './pages/Admin';
+
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./pages/About'));
+const Services = lazy(() => import('./pages/Services'));
+const ServiceDetails = lazy(() => import('./pages/ServiceDetails'));
+const Doctors = lazy(() => import('./pages/Doctors'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Admin = lazy(() => import('./pages/Admin'));
 
 
 
@@ -75,6 +76,7 @@ function App() {
       
       {/* Main Dynamic Viewport with React Router */}
       <main className={`main-content-area ${isAdminPage ? 'admin-layout' : ''}`}>
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><span>Loading...</span></div>}>
         <Routes>
           <Route 
             path="/" 
@@ -108,6 +110,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
+        </Suspense>
       </main>
 
       {/* Floating Sidebar Actions */}
