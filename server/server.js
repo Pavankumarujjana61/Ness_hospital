@@ -1,22 +1,16 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
-dotenv.config({ path: path.resolve(__dirname, '.env.local') });
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-dotenv.config({ path: path.resolve(__dirname, '.env') });
-
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
+import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { query, run, get } from './db.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ensure public folder exists
 const publicDir = path.resolve(__dirname, '../public');
@@ -50,7 +44,7 @@ const upload = multer({
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = 'newlife-super-secret-jwt-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'newlife-super-secret-jwt-key-2026';
 
 // Middleware
 app.use(cors());
@@ -669,20 +663,6 @@ app.use((err, req, res, next) => {
   }
   next();
 });
-
-// Serve static files from the React app dist folder in production
-const distDir = path.resolve(__dirname, '../dist');
-if (fs.existsSync(distDir)) {
-  console.log(`Serving static files from: ${distDir}`);
-  app.use(express.static(distDir));
-  app.get(/.*/, (req, res, next) => {
-    // Pass API requests through to the router
-    if (req.url.startsWith('/api')) {
-      return next();
-    }
-    res.sendFile(path.join(distDir, 'index.html'));
-  });
-}
 
 // Spin up server listener
 app.listen(PORT, () => {
