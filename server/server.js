@@ -664,6 +664,23 @@ app.use((err, req, res, next) => {
   next();
 });
 
+// Serve static uploads folder (for newly uploaded doctor photos at runtime)
+app.use(express.static(publicDir));
+
+// Serve static files from the React app dist folder in production
+const distDir = path.resolve(__dirname, '../dist');
+if (fs.existsSync(distDir)) {
+  console.log(`Serving static files from: ${distDir}`);
+  app.use(express.static(distDir));
+  app.get(/.*/, (req, res, next) => {
+    // Pass API requests through to the router
+    if (req.url.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(distDir, 'index.html'));
+  });
+}
+
 // Spin up server listener
 app.listen(PORT, () => {
   console.log(`Node Express Server active on http://localhost:${PORT}`);

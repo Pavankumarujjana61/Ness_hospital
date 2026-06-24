@@ -20,22 +20,34 @@ const initDb = async () => {
   if (initialized || isInitializing) return;
   isInitializing = true;
   try {
-    console.log(`Connecting to MySQL server at ${config.host}:${config.port}...`);
-    // 1. Connect without database first
-    const tempConnection = await mysql.createConnection(config);
-    await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    await tempConnection.end();
+    const dbUrl = process.env.DATABASE_URL || process.env.JAWSDB_URL || process.env.CLEARDB_DATABASE_URL;
 
-    // 2. Create connection pool targeting the database
-    pool = mysql.createPool({
-      ...config,
-      database: dbName,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
-    });
+    if (dbUrl) {
+      console.log('Connecting to MySQL database using connection URL...');
+      pool = mysql.createPool(dbUrl);
+      console.log('Connected to MySQL database via connection URL.');
+    } else {
+      console.log(`Connecting to MySQL server at ${config.host}:${config.port}...`);
+      // 1. Connect without database first (wrapped in try-catch in case user lacks CREATE DB privileges)
+      try {
+        const tempConnection = await mysql.createConnection(config);
+        await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+        await tempConnection.end();
+      } catch (err) {
+        console.warn(`Warning: Could not check/create database '${dbName}': ${err.message}. Connecting to pool directly.`);
+      }
 
-    console.log(`Connected to MySQL database: ${dbName}`);
+      // 2. Create connection pool targeting the database
+      pool = mysql.createPool({
+        ...config,
+        database: dbName,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+      });
+
+      console.log(`Connected to MySQL database: ${dbName}`);
+    }
 
     // 3. Create Admins Table
     await pool.query(`
