@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: neshosp-hospital
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      # You can link a MySQL database here. If you deploy a database on Render,
+      # you can use Render's environment variables to auto-link them.
+      - key: DATABASE_URL
+        value: "" # Provide your cloud MySQL connection string here, or configure it in the Render dashboard.

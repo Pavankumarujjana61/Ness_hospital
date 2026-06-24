@@ -1,14 +1,6 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
-
-const config = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  port: parseInt(process.env.DB_PORT || '3306', 10),
-};
-
-const dbName = process.env.DB_NAME || 'neshosp';
+import { config as appConfig } from './config/config.js';
 
 let pool = null;
 
@@ -20,17 +12,25 @@ const initDb = async () => {
   if (initialized || isInitializing) return;
   isInitializing = true;
   try {
-    const dbUrl = process.env.DATABASE_URL || process.env.JAWSDB_URL || process.env.CLEARDB_DATABASE_URL;
+    const dbUrl = appConfig.db.url;
 
     if (dbUrl) {
       console.log('Connecting to MySQL database using connection URL...');
       pool = mysql.createPool(dbUrl);
       console.log('Connected to MySQL database via connection URL.');
     } else {
-      console.log(`Connecting to MySQL server at ${config.host}:${config.port}...`);
+      const mysqlConfig = {
+        host: appConfig.db.host,
+        user: appConfig.db.user,
+        password: appConfig.db.password,
+        port: appConfig.db.port
+      };
+      const dbName = appConfig.db.database;
+
+      console.log(`Connecting to MySQL server at ${mysqlConfig.host}:${mysqlConfig.port}...`);
       // 1. Connect without database first (wrapped in try-catch in case user lacks CREATE DB privileges)
       try {
-        const tempConnection = await mysql.createConnection(config);
+        const tempConnection = await mysql.createConnection(mysqlConfig);
         await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await tempConnection.end();
       } catch (err) {
@@ -39,7 +39,7 @@ const initDb = async () => {
 
       // 2. Create connection pool targeting the database
       pool = mysql.createPool({
-        ...config,
+        ...mysqlConfig,
         database: dbName,
         waitForConnections: true,
         connectionLimit: 10,
