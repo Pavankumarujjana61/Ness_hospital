@@ -27,14 +27,14 @@ const initDb = async () => {
       };
       const dbName = appConfig.db.database;
 
-      console.log(`Connecting to MySQL server at ${mysqlConfig.host}:${mysqlConfig.port}...`);
+      console.log(`[DB] Connecting to MySQL at ${mysqlConfig.host}:${mysqlConfig.port} as '${mysqlConfig.user}', database: '${dbName}'`);
       // 1. Connect without database first (wrapped in try-catch in case user lacks CREATE DB privileges)
       try {
         const tempConnection = await mysql.createConnection(mysqlConfig);
         await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await tempConnection.end();
       } catch (err) {
-        console.warn(`Warning: Could not check/create database '${dbName}': ${err.message}. Connecting to pool directly.`);
+        console.warn(`[DB] Warning: Could not check/create database '${dbName}': ${err.message}. Connecting to pool directly.`);
       }
 
       // 2. Create connection pool targeting the database
@@ -767,7 +767,8 @@ const initDb = async () => {
 
     initialized = true;
   } catch (error) {
-    console.error('Error during database initialization:', error.message);
+    console.error('[DB] Database initialization failed:', error.message);
+    console.error('[DB] Connection config used → host:', appConfig.db.host, '| port:', appConfig.db.port, '| user:', appConfig.db.user, '| database:', appConfig.db.database);
     pool = null;
     initialized = false;
   } finally {
@@ -790,7 +791,7 @@ setInterval(() => {
 export const query = async (sql, params = []) => {
   if (!pool) {
     await initPromise;
-    if (!pool) throw new Error("Database connection is currently offline. Please start MySQL in XAMPP.");
+    if (!pool) throw new Error(`MySQL connection failed. Host: ${process.env.DB_HOST || 'localhost'}, DB: ${process.env.DB_NAME || 'neshosp'}. Check server logs for details.`);
   }
   const [rows] = await pool.execute(sql, params);
   return rows;
@@ -800,7 +801,7 @@ export const query = async (sql, params = []) => {
 export const get = async (sql, params = []) => {
   if (!pool) {
     await initPromise;
-    if (!pool) throw new Error("Database connection is currently offline. Please start MySQL in XAMPP.");
+    if (!pool) throw new Error(`MySQL connection failed. Host: ${process.env.DB_HOST || 'localhost'}, DB: ${process.env.DB_NAME || 'neshosp'}. Check server logs for details.`);
   }
   const [rows] = await pool.execute(sql, params);
   return rows[0] || null;
@@ -810,7 +811,7 @@ export const get = async (sql, params = []) => {
 export const run = async (sql, params = []) => {
   if (!pool) {
     await initPromise;
-    if (!pool) throw new Error("Database connection is currently offline. Please start MySQL in XAMPP.");
+    if (!pool) throw new Error(`MySQL connection failed. Host: ${process.env.DB_HOST || 'localhost'}, DB: ${process.env.DB_NAME || 'neshosp'}. Check server logs for details.`);
   }
   const [result] = await pool.execute(sql, params);
   return { id: result.insertId, changes: result.affectedRows };
