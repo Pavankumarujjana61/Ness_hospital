@@ -1097,9 +1097,9 @@ export default function Admin() {
 
       // 3. Fetch Inquiries
       const inqData = await fetchJson('/api/admin/inquiries', { headers });
-      if (inqData.error) {
-        if (handleAuthError(inqData.error)) return;
-      } else {
+      if (inqData && inqData.error) {
+        handleAuthError(inqData.error);
+      } else if (Array.isArray(inqData)) {
         setInquiries(inqData);
       }
 
@@ -2299,21 +2299,21 @@ export default function Admin() {
                       </thead>
                       <tbody>
                         {inquiries.map((inq) => (
-                          <tr key={inq.id} className={inq.status === 'Unread' ? 'row-unread' : ''}>
+                          <tr key={inq.id} className={(inq.status || '') === 'Unread' ? 'row-unread' : ''}>
                             <td>#{inq.id}</td>
-                            <td><strong>{inq.name}</strong></td>
-                            <td>{inq.phone}</td>
+                            <td><strong>{inq.name || '—'}</strong></td>
+                            <td>{inq.phone || '—'}</td>
                             <td>{inq.email ? <a href={`mailto:${inq.email}`}>{inq.email}</a> : <span className="text-muted">None</span>}</td>
-                            <td>{inq.created_at.split(' ')[0]}</td>
+                            <td>{inq.created_at ? String(inq.created_at).split('T')[0].split(' ')[0] : '—'}</td>
                             <td>
-                              <div className="inquiry-message-cell-preview" title={inq.message}>
-                                {inq.message}
+                              <div className="inquiry-message-cell-preview" title={inq.message || ''}>
+                                {inq.message || '—'}
                               </div>
                             </td>
                             <td>
                               <button 
-                                onClick={() => handleToggleInquiry(inq.id, inq.status)}
-                                className={`btn-toggle-inquiry-read ${inq.status.toLowerCase()}`}
+                                onClick={() => handleToggleInquiry(inq.id, inq.status || 'Unread')}
+                                className={`btn-toggle-inquiry-read ${(inq.status || 'unread').toLowerCase()}`}
                               >
                                 {inq.status === 'Unread' ? 'Mark Read' : 'Mark Unread'}
                               </button>
